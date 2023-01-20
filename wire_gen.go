@@ -10,7 +10,8 @@ package main
 
 func InitializeApplication() *Application {
 	mux := NewServer()
+	router := NewRouteGroup(mux)
 	db := NewDatabase()
-	application := NewApplication(mux, db)
+	application := NewApplication(mux, router, db)
 	return application
 }

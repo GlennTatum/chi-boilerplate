@@ -11,25 +11,26 @@ import (
 
 func main() {
 	s := InitializeApplication()
-
-	s.Start(s)
-	//http.ListenAndServe(":3000", s.server)
+	http.ListenAndServe(":3000", s.server)
 }
 
 var applicationSet = wire.NewSet(
 	NewApplication,
 	NewServer,
+	NewRouteGroup,
 	NewDatabase,
 )
 
 type Application struct {
 	server *chi.Mux
+	routes *chi.Router
 	db     *gorm.DB
 }
 
-func NewApplication(server *chi.Mux, db *gorm.DB) *Application {
+func NewApplication(server *chi.Mux, routes *chi.Router, db *gorm.DB) *Application {
 	return &Application{
 		server: server,
+		routes: routes,
 		db:     db,
 	}
 }
@@ -41,18 +42,20 @@ func NewServer() *chi.Mux {
 	return s
 }
 
+func NewRouteGroup(server *chi.Mux) *chi.Router {
+
+	rg := server.Group(func(r chi.Router) {
+		server.Get("/", GetMessage)
+	})
+
+	return &rg
+}
+
 func NewDatabase() *gorm.DB {
 	return &gorm.DB{}
 }
 
-func (a *Application) Start(s *Application) {
-
-	a.server.Get("/", a.GetMessage)
-
-	http.ListenAndServe(":3000", s.server)
-}
-
-func (a *Application) GetMessage(w http.ResponseWriter, r *http.Request) {
+func GetMessage(w http.ResponseWriter, r *http.Request) {
 	// a.db.First() // Query db with injected Database dependency
 	w.Write([]byte("Number of the Day: 1"))
 }
