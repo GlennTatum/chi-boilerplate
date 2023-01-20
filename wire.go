@@ -1,7 +1,6 @@
 package main
 
-import "github.com/google/wire"
-
+/*
 func InitializeApplication() *Application {
 	wire.Build(
 		applicationSet,
@@ -9,3 +8,4 @@ func InitializeApplication() *Application {
 
 	return nil
 }
+*/

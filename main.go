@@ -12,20 +12,19 @@ import (
 func main() {
 	s := InitializeApplication()
 
-	http.ListenAndServe(":3000", s.server)
+	s.Start(s)
+	//http.ListenAndServe(":3000", s.server)
 }
 
 var applicationSet = wire.NewSet(
 	NewApplication,
 	NewServer,
-	NewRouteGroup,
 	NewDatabase,
 )
 
 type Application struct {
 	server *chi.Mux
-	// add route group dep
-	db *gorm.DB
+	db     *gorm.DB
 }
 
 func NewApplication(server *chi.Mux, db *gorm.DB) *Application {
@@ -46,14 +45,11 @@ func NewDatabase() *gorm.DB {
 	return &gorm.DB{}
 }
 
-func NewRouteGroup(app *Application) *chi.Router {
+func (a *Application) Start(s *Application) {
 
-	rg := app.server.Group(func(r chi.Router) {
-		r.Get("/", app.GetMessage)
-	})
+	a.server.Get("/", a.GetMessage)
 
-	return &rg
-
+	http.ListenAndServe(":3000", s.server)
 }
 
 func (a *Application) GetMessage(w http.ResponseWriter, r *http.Request) {
