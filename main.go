@@ -42,6 +42,8 @@ func NewServer() *chi.Mux {
 	return s
 }
 
+// For all your routes add [App_Name]RouteGroup
+
 func NewRouteGroup(server *chi.Mux) *chi.Router {
 
 	rg := server.Group(func(r chi.Router) {
