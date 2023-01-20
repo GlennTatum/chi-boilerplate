@@ -9,9 +9,9 @@ package main
 // Injectors from wire.go:
 
 func InitializeApplication() *Application {
-	mux := NewServer()
-	router := NewRouteGroup(mux)
 	db := NewDatabase()
-	application := NewApplication(mux, router, db)
+	v := NewMessageRoute(db)
+	mux := NewMux(v)
+	application := NewApplication(mux, db)
 	return application
 }

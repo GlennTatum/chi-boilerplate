@@ -6,6 +6,6 @@ func InitializeApplication() *Application {
 		applicationSet,
 	)
 
-	return nil
+	return &Application{}
 }
 */

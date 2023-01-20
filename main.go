@@ -11,53 +11,75 @@ import (
 
 func main() {
 	s := InitializeApplication()
-	http.ListenAndServe(":3000", s.server)
+	http.ListenAndServe(":3000", s.router)
 }
 
-var applicationSet = wire.NewSet(
-	NewApplication,
-	NewServer,
-	NewRouteGroup,
-	NewDatabase,
-)
-
 type Application struct {
-	server *chi.Mux
-	routes *chi.Router
+	router *chi.Mux
 	db     *gorm.DB
 }
 
-func NewApplication(server *chi.Mux, routes *chi.Router, db *gorm.DB) *Application {
+type Route struct {
+	url    string
+	method string
+	fn     http.HandlerFunc
+}
+
+var applicationSet = wire.NewSet(
+	NewDatabase,
+	NewMessageRoute,
+	NewMux,
+	NewApplication,
+)
+
+func NewApplication(router *chi.Mux, db *gorm.DB) *Application {
 	return &Application{
-		server: server,
-		routes: routes,
+		router: router,
 		db:     db,
 	}
 }
 
-func NewServer() *chi.Mux {
+func NewMux(routes *[]Route) *chi.Mux {
 
 	s := chi.NewRouter()
+
+	s.Group(func(r chi.Router) {
+		for _, route := range *routes {
+			switch route.method {
+			case "GET":
+				s.Get(route.url, route.fn)
+			}
+		}
+	})
 
 	return s
 }
 
-// For all your routes add [App_Name]RouteGroup
+func NewMessageRoute(db *gorm.DB) *[]Route {
 
-func NewRouteGroup(server *chi.Mux) *chi.Router {
+	getMessage := func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Number of the Day: 1"))
+	}
 
-	rg := server.Group(func(r chi.Router) {
-		server.Get("/", GetMessage)
-	})
+	getMessageRoute := Route{
+		url:    "/",
+		method: "GET",
+		fn:     getMessage,
+	}
 
-	return &rg
+	return &[]Route{
+		getMessageRoute,
+	}
 }
 
+// func (app *Application) NewMessageRoute(router *chi.Router) {}
+
+/*
+	func getMessage(w http.ResponseWriter, r *http.Request) {
+		// a.db.First() // Query db with injected Database dependency
+		w.Write([]byte("Number of the Day: 1"))
+	}
+*/
 func NewDatabase() *gorm.DB {
 	return &gorm.DB{}
-}
-
-func GetMessage(w http.ResponseWriter, r *http.Request) {
-	// a.db.First() // Query db with injected Database dependency
-	w.Write([]byte("Number of the Day: 1"))
 }
